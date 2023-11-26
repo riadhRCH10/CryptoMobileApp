@@ -8,11 +8,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.cryptomobileapp.R
 import com.example.cryptomobileapp.databinding.FragmentAvalableCryptoBinding
+import com.example.cryptomobileapp.models.CryptoDto
 import com.example.cryptomobileapp.models.RetrofitInstance
 import com.example.cryptomobileapp.viewModels.AvalableCryptoViewModel
 import com.example.cryptomobileapp.viewModels.TAG
+import kotlinx.coroutines.launch
 import java.lang.Exception
 class AvalableCrypto : Fragment(R.layout.fragment_avalable_crypto) {
 
@@ -32,12 +35,28 @@ class AvalableCrypto : Fragment(R.layout.fragment_avalable_crypto) {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProvider(this).get(AvalableCryptoViewModel::class.java)
 
-        //viewModel.getCryptos()
+        viewModel.getCryptos()
         binding.buttonRefresh.setOnClickListener {
-            Log.d(TAG, "refreshing1!")
             Refresh()
         }
 
+        lifecycleScope.launch {
+            viewModel.dataFlow.collect{ cryptos ->
+                Log.d(TAG,"GOT: ${cryptos}")
+                run {
+                    initializeRecyclerView(cryptos)
+                }
+            }
+        }
+
+    }
+
+    fun initializeRecyclerView(cryptos: List<CryptoDto>) {
+        val adapter = CryptoAdapter(cryptos)
+        binding.apply {
+            rvCryptos.adapter = adapter
+            rvCryptos.layoutManager = LinearLayoutManager(context)
+        }
     }
 
     fun Refresh() {
