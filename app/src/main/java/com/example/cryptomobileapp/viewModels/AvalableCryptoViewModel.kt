@@ -1,6 +1,7 @@
 package com.example.cryptomobileapp.viewModels
 
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.cryptomobileapp.models.CryptoDto
@@ -22,17 +23,18 @@ class AvalableCryptoViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val response = RetrofitInstance.api.getCryptos()
-                if (response.isSuccessful){
-                    Log.d(TAG,"success!! : ${response.body()}")
-                    _dataFlow.emit(response.body()!!)
-                    cryptos = response.body()!!
-                }else {
-                    Log.d(TAG,"unsuccessfull")
+                if (response.isSuccessful) {
+                    val cryptoList = response.body() ?: emptyList()
+                    _dataFlow.emit(cryptoList)
+                    Log.d(TAG,"success! ${cryptoList}")
+                } else {
+                    _dataFlow.emit(emptyList())
+                    Log.d(TAG,"failed! ")
                 }
-            } catch (e: Exception){
-                Log.d(TAG,"exception: ${e}")
+            } catch (e: Exception) {
+                _dataFlow.emit(emptyList())
+                Log.d(TAG,"exception ${e}")
             }
-
         }
     }
 

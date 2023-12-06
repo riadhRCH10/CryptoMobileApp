@@ -6,20 +6,20 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.cryptomobileapp.R
 import com.example.cryptomobileapp.databinding.FragmentAvalableCryptoBinding
 import com.example.cryptomobileapp.models.CryptoDto
-import com.example.cryptomobileapp.models.RetrofitInstance
 import com.example.cryptomobileapp.viewModels.AvalableCryptoViewModel
 import com.example.cryptomobileapp.viewModels.TAG
 import kotlinx.coroutines.launch
-import java.lang.Exception
+import androidx.fragment.app.viewModels
 class AvalableCrypto : Fragment(R.layout.fragment_avalable_crypto) {
 
-    private lateinit var viewModel: AvalableCryptoViewModel
+    private val viewModel: AvalableCryptoViewModel by viewModels()
     private lateinit var binding: FragmentAvalableCryptoBinding
 
     override fun onCreateView(
@@ -33,20 +33,18 @@ class AvalableCrypto : Fragment(R.layout.fragment_avalable_crypto) {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(AvalableCryptoViewModel::class.java)
-
-        viewModel.getCryptos()
-        binding.buttonRefresh.setOnClickListener {
-            Refresh()
-        }
 
         lifecycleScope.launch {
             viewModel.dataFlow.collect{ cryptos ->
                 Log.d(TAG,"GOT: ${cryptos}")
-                run {
-                    initializeRecyclerView(cryptos)
-                }
+                binding.progressBar.visibility = View.GONE
+                Toast.makeText(context, "revieved ${cryptos.size} cryptos", Toast.LENGTH_SHORT).show()
+                initializeRecyclerView(cryptos)
             }
+        }
+
+        binding.buttonRefresh.setOnClickListener {
+            Refresh()
         }
 
     }
@@ -61,6 +59,7 @@ class AvalableCrypto : Fragment(R.layout.fragment_avalable_crypto) {
 
     fun Refresh() {
         Log.d(TAG, "refreshing!")
+        binding.progressBar.visibility = View.VISIBLE
         viewModel.getCryptos()
     }
 
